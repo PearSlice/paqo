@@ -57,6 +57,10 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        continue-on-error: true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.OCI_S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.OCI_S3_SECRET_KEY }}
         run: |
           terraform plan -no-color -out=tfplan \
             -var="tenancy_ocid=${{ secrets.TF_TENANCY_OCID }}" \
@@ -72,7 +76,6 @@ jobs:
             -var="ocir_region=${{ secrets.OCIR_REGION }}" \
             -var="ocir_username=${{ secrets.OCIR_USERNAME }}" \
             -var="ocir_token=${{ secrets.OCIR_TOKEN }}"
-        continue-on-error: true
 
       - name: Post plan as PR comment
         if: github.event_name == 'pull_request'
