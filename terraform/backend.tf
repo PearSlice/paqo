@@ -11,11 +11,12 @@ terraform {
   backend "s3" {
     bucket = "terraform-state"
     key    = "quarkus/prod/terraform.tfstate"
-    region = "***"
-    endpoint = "https://zr2oljekdsmp.compat.objectstorage.***.oraclecloud.com"
-    shared_credentials_file     = "/dev/null"
+    region = "eu-central-1" #Not used in s3 compatible oracle cloud, but tf complains otherwise
+    endpoint = "https://zr2oljekdsmp.compat.objectstorage.eu-zurich-1.oraclecloud.com"
     skip_credentials_validation = true
     skip_metadata_api_check     = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
     force_path_style            = true
   }
 }
