@@ -71,7 +71,7 @@ jobs:
 
       - name: Save namespace as secret
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_PAT }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           gh secret set OCIR_NAMESPACE --body "${{ env.NAMESPACE }}"
           gh secret set TF_STATE_NAMESPACE --body "${{ env.NAMESPACE }}"
