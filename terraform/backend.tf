@@ -9,10 +9,10 @@
 
 terraform {
   backend "s3" {
-    bucket = "terraform-state"
-    key    = "quarkus/prod/terraform.tfstate"
-    region = "eu-zurich-1" #Not used in s3 compatible oracle cloud, but tf complains otherwise
-    endpoint = "https://zr2oljekdsmp.compat.objectstorage.eu-zurich-1.oraclecloud.com"
+    bucket                      = "terraform-state"
+    key                         = "quarkus/prod/terraform.tfstate"
+    region                      = "eu-zurich-1" #Not used in s3 compatible oracle cloud, but tf complains otherwise
+    endpoint                    = "https://zr2oljekdsmp.compat.objectstorage.eu-zurich-1.oraclecloud.com"
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     skip_region_validation      = true

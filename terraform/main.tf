@@ -41,10 +41,10 @@ provider "github" {
 # ─── Compartment ──────────────────────────────────────────────────────────────
 # Created under the root compartment (tenancy). All other resources use this.
 resource "oci_identity_compartment" "main" {
-  compartment_id = var.tenancy_ocid   # parent = root
+  compartment_id = var.tenancy_ocid # parent = root
   name           = "${var.project_name}-${var.environment}"
   description    = "Compartment for ${var.project_name} ${var.environment} resources"
-  enable_delete  = true               # allows `terraform destroy` to remove it
+  enable_delete  = true # allows `terraform destroy` to remove it
   freeform_tags  = local.common_tags
 }
 
