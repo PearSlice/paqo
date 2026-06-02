@@ -1,6 +1,6 @@
 locals {
   repo_secret_keys = toset(keys(var.repo_secrets))
-  env_secret_keys = toset(keys(var.env_secrets))
+  env_secret_keys  = toset(keys(var.env_secrets))
 }
 
 
