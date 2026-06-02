@@ -7,9 +7,9 @@
 resource "null_resource" "pg_setup" {
   # Re-run if any of these change
   triggers = {
-    db_vm_id    = var.db_vm_id
-    db_name     = var.db_name
-    db_user     = var.db_user
+    db_vm_id = var.db_vm_id
+    db_name  = var.db_name
+    db_user  = var.db_user
   }
 
   provisioner "remote-exec" {

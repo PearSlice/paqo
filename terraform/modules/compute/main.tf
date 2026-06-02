@@ -18,10 +18,10 @@ resource "oci_core_instance" "app" {
   }
 
   create_vnic_details {
-    subnet_id              = var.public_subnet_id
-    assign_public_ip       = true
-    nsg_ids                = [var.app_nsg_id]
-    hostname_label         = "${var.project_name}-app"
+    subnet_id        = var.public_subnet_id
+    assign_public_ip = true
+    nsg_ids          = [var.app_nsg_id]
+    hostname_label   = "${var.project_name}-app"
   }
 
   metadata = {
