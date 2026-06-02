@@ -39,5 +39,8 @@ nb-configuration.xml
 # Local environment
 .env
 
+# TF
+*/terraform.tfvars.example
+
 # Plugin directory
 /.quarkus/cli/plugins/
