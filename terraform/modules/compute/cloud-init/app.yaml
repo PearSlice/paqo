@@ -1,0 +1,25 @@
+#cloud-config
+# App VM — installs Docker for running the Quarkus native container
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - dnf-plugins-core
+
+runcmd:
+  # Install Docker
+  - dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+  - dnf install -y docker-ce docker-ce-cli containerd.io
+  - systemctl enable --now docker
+  - usermod -aG docker opc
+
+  # Open firewall for app port
+  - firewall-cmd --permanent --add-port=8080/tcp
+  - firewall-cmd --reload
+
+  # Create app directory
+  - mkdir -p /opt/app
+  - chown opc:opc /opt/app
+
+final_message: "App VM is ready. Deploy your Quarkus container to port 8080."

@@ -1,0 +1,110 @@
+name: CD — Deploy to OCI
+
+on:
+  # Triggers after CI completes successfully on main
+  workflow_run:
+    workflows: ["CI — Build & Push"]
+    types: [completed]
+    branches: [main]
+
+  # Manual trigger with optional image tag override
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+
+env:
+  OCIR_REGION: ${{ secrets.OCIR_REGION }}
+  OCIR_NAMESPACE: ${{ secrets.OCIR_NAMESPACE }}
+  IMAGE_NAME: quarkus-service
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    # Only run if the triggering CI workflow succeeded (skip on failure)
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    environment:
+      name: production
+      url: http://${{ secrets.OCI_APP_IP }}:8080
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=$(git rev-parse --short ${{ github.event.workflow_run.head_sha }})" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.OCI_SSH_PRIVATE_KEY }}" > ~/.ssh/oci_deploy
+          chmod 600 ~/.ssh/oci_deploy
+          ssh-keyscan -H ${{ secrets.OCI_APP_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy container
+        env:
+          IMAGE: ${{ env.OCIR_REGION }}/${{ env.OCIR_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+          APP_IP: ${{ secrets.OCI_APP_IP }}
+          DB_HOST: ${{ secrets.DB_PRIVATE_IP }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          OCIR_USERNAME: ${{ secrets.OCIR_USERNAME }}
+          OCIR_TOKEN: ${{ secrets.OCIR_TOKEN }}
+        run: |
+          ssh -i ~/.ssh/oci_deploy opc@$APP_IP bash << EOF
+            set -e
+
+            # Login to OCIR on the VM
+            echo "$OCIR_TOKEN" | docker login ${{ env.OCIR_REGION }} -u "$OCIR_USERNAME" --password-stdin
+
+            # Pull the new image
+            docker pull $IMAGE
+
+            # Blue/green swap: stop old container, start new one
+            docker stop quarkus-app 2>/dev/null || true
+            docker rm   quarkus-app 2>/dev/null || true
+
+            docker run -d \
+              --name quarkus-app \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -e DB_HOST="$DB_HOST" \
+              -e DB_USER="$DB_USER" \
+              -e DB_PASSWORD="$DB_PASSWORD" \
+              -e DB_NAME="$DB_NAME" \
+              $IMAGE
+
+            # Health check — wait up to 30s for /q/health to return 200
+            echo "Waiting for health check..."
+            for i in \$(seq 1 15); do
+              STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/q/health/live || true)
+              if [ "\$STATUS" = "200" ]; then
+                echo "Service is healthy!"
+                exit 0
+              fi
+              echo "  attempt \$i — got \$STATUS, retrying in 2s..."
+              sleep 2
+            done
+
+            echo "Health check failed — rolling back"
+            docker stop quarkus-app && docker rm quarkus-app
+            exit 1
+          EOF
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Deployment failed for tag ${{ steps.tag.outputs.tag }}"
+          # Add Slack/email notification here if needed

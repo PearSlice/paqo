@@ -1,0 +1,39 @@
+#cloud-config
+# DB VM — installs PostgreSQL 16 and hardens it for production use
+
+package_update: true
+package_upgrade: true
+
+runcmd:
+  # Install PostgreSQL 16
+  - dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-aarch64/pgdg-redhat-repo-latest.noarch.rpm
+  - dnf -qy module disable postgresql
+  - dnf install -y postgresql16-server postgresql16
+
+  # Initialise the DB cluster
+  - /usr/pgsql-16/bin/postgresql-16-setup initdb
+  - systemctl enable --now postgresql-16
+
+  # Allow connections from within the VCN (10.0.0.0/16)
+  - echo "host all all 10.0.0.0/16 scram-sha-256" >> /var/lib/pgsql/16/data/pg_hba.conf
+
+  # Listen on all interfaces (traffic is restricted by NSG to port 5432 from app NSG only)
+  - sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /var/lib/pgsql/16/data/postgresql.conf
+
+  # Performance tuning for 16GB RAM
+  - echo "shared_buffers = 4GB"           >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "effective_cache_size = 12GB"    >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "maintenance_work_mem = 1GB"     >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "work_mem = 64MB"               >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "max_connections = 100"          >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "wal_buffers = 64MB"            >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "checkpoint_completion_target = 0.9" >> /var/lib/pgsql/16/data/postgresql.conf
+
+  # Reload to apply config
+  - systemctl restart postgresql-16
+
+  # Open firewall (NSG is the real guard; this is OS-level)
+  - firewall-cmd --permanent --add-port=5432/tcp
+  - firewall-cmd --reload
+
+final_message: "DB VM is ready. Connect via psql as postgres to create your DB and user."

@@ -1,0 +1,13 @@
+variable "compartment_ocid"    { type = string }
+variable "project_name"        { type = string }
+variable "arm_image_id"        { type = string }
+variable "ssh_public_key_path" { type = string }
+variable "public_subnet_id"    { type = string }
+variable "private_subnet_id"   { type = string }
+variable "app_nsg_id"          { type = string }
+variable "db_nsg_id"           { type = string }
+variable "app_ocpus"           { type = number }
+variable "app_memory_gb"       { type = number }
+variable "db_ocpus"            { type = number }
+variable "db_memory_gb"        { type = number }
+variable "tags"                { type = map(string) }
