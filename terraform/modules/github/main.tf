@@ -1,3 +1,8 @@
+locals {
+  env_secret_keys = toset(keys(var.env_secrets))
+}
+
+
 # ─── Fetch repo data ──────────────────────────────────────────────────────────
 data "github_repository" "repo" {
   name = var.github_repo
@@ -20,10 +25,10 @@ resource "github_actions_secret" "repo" {
 
 # ─── Environment secrets (production) ────────────────────────────────────────
 resource "github_actions_environment_secret" "env" {
-  for_each = var.env_secrets
+  for_each = local.env_secret_keys
 
   repository      = data.github_repository.repo.name
   environment     = github_repository_environment.env.environment
   secret_name     = each.key
-  plaintext_value = each.value
+  plaintext_value = var.env_secrets[each.key]
 }

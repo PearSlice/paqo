@@ -11,18 +11,6 @@ terraform {
       version = "~> 6.0"
     }
   }
-
-  # Uncomment to store state in OCI Object Storage (recommended for teams)
-  # backend "s3" {
-  #   bucket                      = "terraform-state"
-  #   key                         = "quarkus/prod/terraform.tfstate"
-  #   region                      = "eu-frankfurt-1"
-  #   endpoint                    = "https://<namespace>.compat.objectstorage.<region>.oraclecloud.com"
-  #   shared_credentials_file     = "/dev/null"
-  #   skip_credentials_validation = true
-  #   skip_metadata_api_check     = true
-  #   force_path_style            = true
-  # }
 }
 
 provider "oci" {
@@ -117,7 +105,7 @@ module "database" {
 # ─── Object Storage Bucket ────────────────────────────────────────────────────
 resource "oci_objectstorage_bucket" "main" {
   compartment_id = oci_identity_compartment.main.id
-  namespace      = data.oci_objectstorage_namespace.ns.name
+  namespace      = data.oci_objectstorage_namespace.ns.namespace
   name           = "${var.project_name}-${var.environment}-bucket"
   access_type    = "NoPublicAccess"
   freeform_tags  = local.common_tags
@@ -133,7 +121,7 @@ module "github_secrets" {
   # Repository secrets
   repo_secrets = {
     OCIR_REGION         = var.ocir_region
-    OCIR_NAMESPACE      = data.oci_objectstorage_namespace.ns.name
+    OCIR_NAMESPACE      = data.oci_objectstorage_namespace.ns.namespace
     OCIR_USERNAME       = var.ocir_username
     OCIR_TOKEN          = var.ocir_token
     OCI_SSH_PRIVATE_KEY = file(replace(var.ssh_public_key_path, ".pub", ""))

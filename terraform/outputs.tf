@@ -30,5 +30,5 @@ output "jdbc_url" {
 
 output "object_storage_namespace" {
   description = "Tenancy namespace — use this for OCIR_NAMESPACE"
-  value       = data.oci_objectstorage_namespace.ns.name
+  value       = data.oci_objectstorage_namespace.ns.namespace
 }
