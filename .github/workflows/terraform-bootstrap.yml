@@ -1,0 +1,78 @@
+name: Terraform Bootstrap (run once)
+
+on:
+  workflow_dispatch:  # manual trigger only — run this once before anything else
+
+env:
+  TF_VERSION: '1.8.0'
+
+jobs:
+  bootstrap:
+    name: Create state bucket
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Write OCI API key
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_API_KEY_PEM }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+
+      - name: Create state bucket via OCI CLI
+        run: |
+          # Install OCI CLI
+          pip install oci-cli --quiet
+
+          # Configure OCI CLI
+          mkdir -p ~/.oci
+          cat > ~/.oci/config << OCIEOF
+          [DEFAULT]
+          user=${{ secrets.TF_USER_OCID }}
+          fingerprint=${{ secrets.TF_FINGERPRINT }}
+          tenancy=${{ secrets.TF_TENANCY_OCID }}
+          region=${{ secrets.TF_REGION }}
+          key_file=$HOME/.oci/oci_api_key.pem
+          OCIEOF
+
+          # Get namespace
+          NAMESPACE=$(oci os ns get --query 'data' --raw-output)
+          echo "NAMESPACE=${NAMESPACE}" >> $GITHUB_ENV
+          echo "Namespace: ${NAMESPACE}"
+
+          # Create bucket if it doesn't exist
+          oci os bucket create \
+            --compartment-id ${{ secrets.TF_TENANCY_OCID }} \
+            --name terraform-state \
+            --namespace ${NAMESPACE} \
+            --versioning Enabled \
+            2>&1 | grep -v "already exists" || true
+
+          echo "State bucket ready."
+          echo "Add this backend to terraform/main.tf:"
+          echo ""
+          echo "  backend \"s3\" {"
+          echo "    bucket = \"terraform-state\""
+          echo "    key    = \"quarkus/prod/terraform.tfstate\""
+          echo "    region = \"${{ secrets.TF_REGION }}\""
+          echo "    endpoint = \"https://${NAMESPACE}.compat.objectstorage.${{ secrets.TF_REGION }}.oraclecloud.com\""
+          echo "    shared_credentials_file     = \"/dev/null\""
+          echo "    skip_credentials_validation = true"
+          echo "    skip_metadata_api_check     = true"
+          echo "    force_path_style            = true"
+          echo "  }"
+
+      - name: Save namespace as secret
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_PAT }}
+        run: |
+          gh secret set OCIR_NAMESPACE --body "${{ env.NAMESPACE }}"
+          gh secret set TF_STATE_NAMESPACE --body "${{ env.NAMESPACE }}"
+          echo "Secrets updated."
