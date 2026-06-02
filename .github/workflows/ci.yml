@@ -13,9 +13,8 @@ on:
       - '**.md'
 
 env:
-  # Oracle Container Image Registry
-  OCIR_REGION: ${{ secrets.OCIR_REGION }}           # e.g. fra.ocir.io
-  OCIR_NAMESPACE: ${{ secrets.OCIR_NAMESPACE }}     # your tenancy namespace
+  OCIR_REGION: ${{ secrets.OCIR_REGION }}
+  OCIR_NAMESPACE: ${{ secrets.OCIR_NAMESPACE }}
   IMAGE_NAME: quarkus-service
   JAVA_VERSION: '21'
 
@@ -94,8 +93,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.OCIR_REGION }}
-          username: ${{ secrets.OCIR_USERNAME }}   # <tenancy-namespace>/<username>
-          password: ${{ secrets.OCIR_TOKEN }}      # OCI Auth Token
+          username: ${{ secrets.OCIR_USERNAME }}
+          password: ${{ secrets.OCIR_TOKEN }}
 
       - name: Generate image tags
         id: meta
@@ -108,8 +107,9 @@ jobs:
         run: |
           ./mvnw package -Pnative -DskipTests \
             -Dquarkus.native.container-build=true \
+            -Dquarkus.native.container-build-args="--platform linux/arm64" \
             -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 \
-            -Dquarkus.native.container-runtime-options="--platform linux/arm64"
+            -Dquarkus.container-image.build=false
 
       - name: Build & push Docker image
         uses: docker/build-push-action@v5
