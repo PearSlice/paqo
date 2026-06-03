@@ -12,11 +12,13 @@ on:
 env:
   TF_VERSION: '1.8.0'
   WORKING_DIR: terraform
+  TF_LOG: INFO
 
 jobs:
   terraform:
     name: ${{ github.event_name == 'pull_request' && 'Plan' || 'Apply' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     defaults:
       run:

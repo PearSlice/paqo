@@ -28,6 +28,10 @@ resource "oci_core_instance" "app" {
     ssh_authorized_keys = file(var.ssh_public_key_path)
     user_data           = base64encode(file("${path.module}/cloud-init/app.yaml"))
   }
+
+  timeouts {
+    create = "20m"
+  }
 }
 
 # ─── DB VM (private subnet) ───────────────────────────────────────────────────
@@ -46,7 +50,7 @@ resource "oci_core_instance" "db" {
   source_details {
     source_type             = "image"
     source_id               = var.arm_image_id
-    boot_volume_size_in_gbs = 100 # Extra space for DB data
+    boot_volume_size_in_gbs = 100
   }
 
   create_vnic_details {
@@ -59,6 +63,10 @@ resource "oci_core_instance" "db" {
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
     user_data           = base64encode(file("${path.module}/cloud-init/db.yaml"))
+  }
+
+  timeouts {
+    create = "20m"
   }
 }
 
