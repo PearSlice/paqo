@@ -72,9 +72,9 @@ jobs:
             -var="region=${{ secrets.TF_REGION }}" \
             -var="ssh_public_key_path=$HOME/.ssh/oci_quarkus.pub" \
             -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="github_token=${{ secrets.GH_TOKEN }}" \
-            -var="github_owner=${{ github.repository_owner }}" \
-            -var="github_repo=${{ github.event.repository.name }}" \
+            -var="gh_token=${{ secrets.GH_TOKEN }}" \
+            -var="gh_owner=${{ github.repository_owner }}" \
+            -var="gh_repo=${{ github.event.repository.name }}" \
             -var="ocir_region=${{ secrets.OCIR_REGION }}" \
             -var="ocir_username=${{ secrets.OCIR_USERNAME }}" \
             -var="ocir_token=${{ secrets.OCIR_TOKEN }}"
