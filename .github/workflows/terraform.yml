@@ -98,8 +98,14 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.OCI_S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.OCI_S3_SECRET_KEY }}
         run: terraform apply -auto-approve tfplan
 
       - name: Print outputs
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.OCI_S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.OCI_S3_SECRET_KEY }}
         run: terraform output
