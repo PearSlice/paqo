@@ -63,27 +63,27 @@ variable "ssh_public_key_path" {
 }
 
 variable "app_ocpus" {
-  description = "OCPUs for the app VM (A1 free tier: max 4 total)"
+  description = "OCPUs for the app VM (A1 free tier: max 2 total, 1 per VM)"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "app_memory_gb" {
   description = "Memory in GB for the app VM"
   type        = number
-  default     = 8
+  default     = 4
 }
 
 variable "db_ocpus" {
   description = "OCPUs for the DB VM"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "db_memory_gb" {
   description = "Memory in GB for the DB VM"
   type        = number
-  default     = 16
+  default     = 8
 }
 
 # ─── Database ────────────────────────────────────────────────────────────────

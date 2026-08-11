@@ -20,13 +20,13 @@ runcmd:
   # Listen on all interfaces (traffic is restricted by NSG to port 5432 from app NSG only)
   - sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /var/lib/pgsql/16/data/postgresql.conf
 
-  # Performance tuning for 16GB RAM
-  - echo "shared_buffers = 4GB"           >> /var/lib/pgsql/16/data/postgresql.conf
-  - echo "effective_cache_size = 12GB"    >> /var/lib/pgsql/16/data/postgresql.conf
-  - echo "maintenance_work_mem = 1GB"     >> /var/lib/pgsql/16/data/postgresql.conf
-  - echo "work_mem = 64MB"               >> /var/lib/pgsql/16/data/postgresql.conf
-  - echo "max_connections = 100"          >> /var/lib/pgsql/16/data/postgresql.conf
-  - echo "wal_buffers = 64MB"            >> /var/lib/pgsql/16/data/postgresql.conf
+  # Performance tuning for 8GB RAM
+  - echo "shared_buffers = 2GB"           >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "effective_cache_size = 6GB"     >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "maintenance_work_mem = 512MB"   >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "work_mem = 32MB"               >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "max_connections = 50"           >> /var/lib/pgsql/16/data/postgresql.conf
+  - echo "wal_buffers = 16MB"            >> /var/lib/pgsql/16/data/postgresql.conf
   - echo "checkpoint_completion_target = 0.9" >> /var/lib/pgsql/16/data/postgresql.conf
 
   # Reload to apply config

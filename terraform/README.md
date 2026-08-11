@@ -77,14 +77,14 @@ docker run -d \
 
 ## Free tier limits
 
-OCI Always Free ARM gives you a pool of **4 OCPU + 24 GB RAM** total.
+OCI Always Free ARM gives you a pool of **2 OCPU + 12 GB RAM** total.
 Default split in this config:
 
 | VM | OCPU | RAM |
 |---|---|---|
-| App | 2 | 8 GB |
-| DB  | 2 | 16 GB |
-| **Total** | **4** | **24 GB** ✅ |
+| App | 1 | 4 GB |
+| DB  | 1 | 8 GB |
+| **Total** | **2** | **12 GB** ✅ |
 
 ## Teardown
 
